@@ -1,12 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import FlashCard from './components/FlashCard';
 import PostLog from './components/PostLog';
+import { TouchpadInput } from './components/inputs/TouchpadInput';
+import { PracticeEngineDemo } from './components/PracticeEngineDemo';
+import { Dashboard } from './components/Dashboard';
+import { MathValidationDemo } from './components/MathValidationDemo';
 import { useWebSocket } from './hooks/useWebSocket';
 import { generateQuestion } from './utils/questionGenerator';
 import { Question, LogEntry } from './types';
 
 function App() {
+  const [appMode, setAppMode] = useState<'classic' | 'demo' | 'dashboard' | 'validation'>('dashboard');
   const [currentQuestion, setCurrentQuestion] = useState<Question>(generateQuestion());
   const [previousQuestion, setPreviousQuestion] = useState<Question | null>(null);
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
@@ -68,6 +73,98 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastMessage, currentQuestion.answer, clearLastMessage]);
 
+  // Handle manual input from TouchpadInput
+  const handleManualAnswer = (answer: number) => {
+    console.log('Manual answer submitted:', answer);
+    const isAnswerCorrect = answer === currentQuestion.answer;
+    
+    const newEntry: LogEntry = {
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: new Date().toISOString(),
+      payload: {
+        answer,
+        source: 'manual'
+      },
+      isCorrect: isAnswerCorrect
+    };
+
+    setLogEntries((prev) => [...prev, newEntry]);
+    
+    // Store the current question before generating new one
+    setPreviousQuestion(currentQuestion);
+    
+    // Show feedback
+    setLastAnswer(answer);
+    setIsAnswered(true);
+    setIsCorrect(isAnswerCorrect);
+
+    // Generate new question after a delay
+    setTimeout(() => {
+      setCurrentQuestion(generateQuestion());
+      setIsAnswered(false);
+      setIsCorrect(false);
+      setLastAnswer(undefined);
+    }, 1500);
+  };
+
+  // Show Dashboard (main app)
+  if (appMode === 'dashboard') {
+    return (
+      <div className="App">
+        <Dashboard onStartAssessment={() => console.log('Start assessment')} />
+        <div className="fixed bottom-4 right-4 flex gap-2">
+          <button
+            onClick={() => setAppMode('validation')}
+            className="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700"
+          >
+            Test Validation
+          </button>
+          <button
+            onClick={() => setAppMode('classic')}
+            className="px-4 py-2 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-800"
+          >
+            Classic Mode
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show Validation Demo
+  if (appMode === 'validation') {
+    return (
+      <div className="App">
+        <MathValidationDemo />
+        <div className="fixed bottom-4 right-4">
+          <button
+            onClick={() => setAppMode('dashboard')}
+            className="px-4 py-2 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-800"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show Practice Engine Demo
+  if (appMode === 'demo') {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <h1>Practice Engine Demo</h1>
+          <button
+            onClick={() => setAppMode('dashboard')}
+            className="text-sm underline"
+          >
+            Back to Dashboard
+          </button>
+        </header>
+        <PracticeEngineDemo />
+      </div>
+    );
+  }
+
   return (
     <div className="App">
       <header className="App-header">
@@ -78,6 +175,20 @@ function App() {
           ) : (
             <span className="disconnected">● Disconnected</span>
           )}
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setAppMode('demo')}
+            className="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+          >
+            Engine Demo
+          </button>
+          <button
+            onClick={() => setAppMode('dashboard')}
+            className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+          >
+            Dashboard
+          </button>
         </div>
       </header>
       
@@ -90,13 +201,20 @@ function App() {
             lastAnswer={lastAnswer}
             previousQuestion={previousQuestion}
           />
-          <div className="webhook-info">
-            <p>Send POST requests to:</p>
-            <code>http://localhost:3001/webhook</code>
-            <p>Expected format:</p>
-            <pre>{`{ "answer": <number> }
-or
-{ "number": <number> }`}</pre>
+          
+          {/* TouchPad Input Component */}
+          <div className="mt-8">
+            <TouchpadInput 
+              onSubmit={handleManualAnswer}
+              disabled={isAnswered}
+              showFeedback={isAnswered}
+              isCorrect={isCorrect}
+            />
+          </div>
+          
+          <div className="webhook-info mt-8 text-sm text-gray-600">
+            <p>Or send answers via WebSocket:</p>
+            <code className="text-xs">POST http://localhost:3001/webhook</code>
           </div>
         </div>
         
