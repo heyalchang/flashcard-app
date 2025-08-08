@@ -1,4 +1,4 @@
-import { Question, Answer, ProgressEntry, SessionSummary, PracticeMode } from '../types/core';
+import { Question, Answer, ProgressEntry, SessionSummary, PracticeMode, AttemptDetail } from '../types/core';
 
 /**
  * Strategy interface for tracking progress
@@ -33,6 +33,7 @@ export interface ProgressTracker {
  */
 export abstract class BaseProgressTracker implements ProgressTracker {
   protected progress: Map<string, ProgressEntry> = new Map();
+  protected attemptDetails: AttemptDetail[] = [];
   protected sessionId: string;
   protected mode: PracticeMode;
   protected startTime: number;
@@ -53,6 +54,15 @@ export abstract class BaseProgressTracker implements ProgressTracker {
   ): void {
     this.questionsAttempted++;
     if (isCorrect) this.questionsCorrect++;
+
+    // Store attempt detail
+    this.attemptDetails.push({
+      question,
+      userAnswer: answer.value,
+      isCorrect,
+      responseTime: timeSpent,
+      timestamp: Date.now()
+    });
 
     let entry = this.progress.get(question.id);
     
@@ -128,12 +138,14 @@ export abstract class BaseProgressTracker implements ProgressTracker {
       masteryAchieved: progressArray
         .filter(e => e.mastery >= 1)
         .map(e => e.questionId),
-      progressEntries: progressArray
+      progressEntries: progressArray,
+      attemptDetails: this.attemptDetails
     };
   }
 
   reset(): void {
     this.progress.clear();
+    this.attemptDetails = [];
     this.questionsAttempted = 0;
     this.questionsCorrect = 0;
     this.startTime = Date.now();

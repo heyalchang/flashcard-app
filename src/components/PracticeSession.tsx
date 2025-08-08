@@ -277,10 +277,72 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({ track, mode, o
               </div>
             </div>
 
+            {/* Detailed Problem List */}
+            {summary.attemptDetails && summary.attemptDetails.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold mb-4">Problem Details</h3>
+                <div className="max-h-96 overflow-y-auto border rounded-lg">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 sticky top-0">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          #
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Problem
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Your Answer
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Correct Answer
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Time
+                        </th>
+                        <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Result
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {summary.attemptDetails.map((attempt, index) => (
+                        <tr key={index} className={attempt.isCorrect ? 'bg-green-50' : 'bg-red-50'}>
+                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                            {index + 1}
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {attempt.question.content.expression || 
+                             `${attempt.question.content.operands?.[0]} ${attempt.question.content.operator} ${attempt.question.content.operands?.[1]}`}
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                            {attempt.userAnswer}
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                            {attempt.question.correctAnswer}
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-600">
+                            {(attempt.responseTime / 1000).toFixed(1)}s
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap text-center">
+                            {attempt.isCorrect ? (
+                              <span className="text-green-600 font-bold text-lg">✓</span>
+                            ) : (
+                              <span className="text-red-600 font-bold text-lg">✗</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             {/* Progress Grid */}
             {summary.progressEntries.length > 0 && (
               <div className="mb-8">
-                <h3 className="text-lg font-semibold mb-4">Your Progress</h3>
+                <h3 className="text-lg font-semibold mb-4">Mastery Progress</h3>
                 <ProgressGrid entries={summary.progressEntries} />
               </div>
             )}

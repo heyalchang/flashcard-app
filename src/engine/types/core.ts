@@ -51,6 +51,14 @@ export type PracticeMode =
   | 'fluency' 
   | 'assessment';
 
+export interface AttemptDetail {
+  question: Question;
+  userAnswer: any;
+  isCorrect: boolean;
+  responseTime: number; // in milliseconds
+  timestamp: number;
+}
+
 export interface SessionSummary {
   sessionId: string;
   mode: PracticeMode;
@@ -61,6 +69,7 @@ export interface SessionSummary {
   averageResponseTime: number;
   masteryAchieved: string[]; // Question IDs that reached mastery
   progressEntries: ProgressEntry[];
+  attemptDetails?: AttemptDetail[]; // Detailed list of all attempts
 }
 
 export interface FeedbackState {
