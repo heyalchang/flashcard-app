@@ -302,26 +302,27 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStartAssessment }) => {
           <div className="flex-1 flex">
             {/* Left side: Grid and Practice Modes */}
             <div className="flex-1 p-8">
-              {/* Learning Grid */}
-              <div className="mb-8">
-                <LearningGrid
-                  questions={trackQuestions}
-                  progress={trackProgress}
-                  gridConfig={{
-                    type: 'multiplication-table',
-                    showEmptyCells: false
-                  }}
-                  targetMastery={0.8}
-                />
-              </div>
+              <div className="max-w-[800px]">
+                {/* Learning Grid */}
+                <div className="mb-8">
+                  <LearningGrid
+                    questions={trackQuestions}
+                    progress={trackProgress}
+                    gridConfig={{
+                      type: 'multiplication-table',
+                      showEmptyCells: false
+                    }}
+                    targetMastery={0.8}
+                  />
+                </div>
 
-              {/* Practice Mode Selection */}
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold mb-1">Choose Practice Mode</h2>
-                <p className="text-sm text-gray-600">Click any mode to start practicing immediately</p>
-              </div>
-              
-              <div className="space-y-4 mb-6">
+                {/* Practice Mode Selection */}
+                <div className="mb-4">
+                  <h2 className="text-xl font-semibold mb-1">Choose Practice Mode</h2>
+                  <p className="text-sm text-gray-600">Click any mode to start practicing immediately</p>
+                </div>
+                
+                <div className="space-y-4 mb-6">
                 {/* Row 1: Assessment & Learn */}
                 <div className="grid grid-cols-2 gap-4">
                   {practiceModes.filter(m => m.row === 1).map(({ mode, label, description, icon }) => (
@@ -416,9 +417,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStartAssessment }) => {
                   ))}
                 </div>
               </div>
-          </div>
+              </div>
+            </div>
 
-          {/* Right side: Time Tracker */}
+            {/* Right side: Time Tracker */}
           <div className="w-80 p-8 border-l">
             <PracticeTimeTracker
               userId="user-123"
