@@ -1,0 +1,23 @@
+
+> server@1.0.0 dev
+> nodemon src/server.ts
+
+[33m[nodemon] 3.1.10[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: ts,json[39m
+[32m[nodemon] starting `ts-node src/server.ts`[39m
+Server running on http://localhost:3001
+Webhook endpoints:
+  - http://localhost:3001/webhook
+  - http://localhost:3001/api/answer
+WebSocket endpoint: ws://localhost:3001
+New WebSocket connection
+New WebSocket connection
+Received webhook: {
+  number: 5,
+  transcription: 'five.',
+  timestamp: '2025-08-06T10:58:05.640289',
+  last_question: null
+}
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m

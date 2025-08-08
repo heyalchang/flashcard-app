@@ -1,46 +1,88 @@
-# Getting Started with Create React App
+# Math Flashcard App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A React application that displays single-digit addition and subtraction flashcards with answers between 1-20, designed to receive answers via webhook from a voice agent.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- Single-digit addition and subtraction problems
+- Answers constrained to 1-20 range
+- WebSocket connection for real-time updates
+- Webhook endpoint for receiving POST requests
+- Visual log of all received webhook posts
+- Automatic progression to next question on correct answer
 
-### `npm start`
+## Getting Started
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### Install Dependencies
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+```bash
+# Install frontend dependencies
+cd flashcard-app
+npm install
 
-### `npm test`
+# Install backend dependencies
+cd server
+npm install
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Running the Application
 
-### `npm run build`
+You need to run both the backend server and the React frontend:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+#### Terminal 1 - Backend Server:
+```bash
+cd flashcard-app/server
+npm run dev
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+This starts the Express server on http://localhost:3001 with:
+- Webhook endpoint: `POST http://localhost:3001/webhook`
+- WebSocket server: `ws://localhost:3001`
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+#### Terminal 2 - React Frontend:
+```bash
+cd flashcard-app
+npm start
+```
 
-### `npm run eject`
+This starts the React app on http://localhost:3000
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## Testing the Application
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Using curl:
+```bash
+# Send a correct answer
+curl -X POST http://localhost:3001/webhook \
+  -H "Content-Type: application/json" \
+  -d '{"answer": 15}'
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+# Send an incorrect answer
+curl -X POST http://localhost:3001/webhook \
+  -H "Content-Type: application/json" \
+  -d '{"answer": 99}'
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### Using HTTPie:
+```bash
+# Send a correct answer
+http POST localhost:3001/webhook answer:=15
 
-## Learn More
+# Send any custom payload
+http POST localhost:3001/webhook answer:=10 user="voice-agent" session="abc123"
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Webhook Format
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+The webhook expects a JSON payload with at least an `answer` field:
+
+```json
+{
+  "answer": 15
+}
+```
+
+Additional fields are accepted and will be displayed in the log.
+
+## Development
+
+The app uses WebSockets to communicate between the backend and frontend, ensuring real-time updates when webhook posts are received. When a correct answer is received, the app automatically advances to the next question after a 2-second delay.
