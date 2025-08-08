@@ -174,13 +174,13 @@ export class QuestionEngine {
     if ('validateAnswerWithQuestion' in this.config.plugin) {
       // Use enhanced validation with full question context
       isCorrect = (this.config.plugin as any).validateAnswerWithQuestion(
-        answer,
+        answer.value,  // Pass the numeric value, not the Answer object
         this.currentQuestion
       );
     } else {
       // Fall back to standard validation
       isCorrect = this.config.plugin.validateAnswer(
-        answer,
+        answer.value,  // Pass the numeric value, not the Answer object
         this.currentQuestion.correctAnswer
       );
     }
