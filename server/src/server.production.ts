@@ -3,14 +3,19 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import { WebSocket, WebSocketServer } from 'ws';
 import http from 'http';
+import path from 'path';
 import { parseSpokenNumber } from './numberParser';
 
 const app = express();
-const port = 3051;
+const port = process.env.PORT || 8080;
 
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Serve React build files
+const buildPath = path.join(__dirname, '../../build');
+app.use(express.static(buildPath));
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
@@ -41,6 +46,17 @@ wss.on('connection', (ws: WebSocket) => {
   ws.on('error', (error) => {
     console.error('WebSocket error:', error);
     clients.delete(ws);
+  });
+
+  // Send a ping every 30 seconds to keep connection alive
+  const pingInterval = setInterval(() => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.ping();
+    }
+  }, 30000);
+
+  ws.on('close', () => {
+    clearInterval(pingInterval);
   });
 });
 
@@ -131,10 +147,14 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', clients: clients.size });
 });
 
+// Catch all - serve React app for any other route
+app.get('*', (req, res) => {
+  res.sendFile(path.join(buildPath, 'index.html'));
+});
+
 server.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
-  console.log(`Webhook endpoints:`);
-  console.log(`  - http://localhost:${port}/webhook`);
-  console.log(`  - http://localhost:${port}/api/answer`);
-  console.log(`WebSocket endpoint: ws://localhost:${port}`);
+  console.log(`Server running on port ${port}`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
+  console.log(`Webhook endpoints available at /webhook and /api/answer`);
+  console.log(`WebSocket endpoint available at ws://[your-domain]/`);
 });

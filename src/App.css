@@ -31,16 +31,23 @@
 }
 
 .App-main {
-  display: flex;
-  gap: 20px;
   padding: 20px;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
-.flashcard-container {
+.main-content {
+  display: flex;
+  gap: 20px;
+}
+
+.flashcard-section {
   flex: 1;
-  min-width: 400px;
+  min-width: 500px;
+}
+
+.flashcard-container {
+  width: 100%;
 }
 
 .flash-card {
@@ -229,4 +236,116 @@
   .question-text {
     font-size: 36px;
   }
+}
+
+/* Voice Agent Styles */
+.voice-agent-section {
+  margin-top: 20px;
+}
+
+.voice-agent-container {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.voice-agent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.voice-agent-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.voice-status {
+  font-size: 14px;
+}
+
+.status-connected {
+  color: #4caf50;
+  font-weight: 500;
+}
+
+.status-disconnected {
+  color: #999;
+}
+
+.voice-agent-error {
+  background: #fff3e0;
+  border: 1px solid #ffb74d;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 16px;
+  color: #e65100;
+}
+
+.voice-agent-error p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.voice-agent-error small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #999;
+}
+
+.voice-agent-controls {
+  margin: 16px 0;
+  text-align: center;
+}
+
+.join-button {
+  background: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.join-button:hover {
+  background: #1976d2;
+}
+
+.join-button:active {
+  background: #1565c0;
+}
+
+.voice-agent-frame {
+  margin: 16px 0;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.voice-agent-info {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+.voice-agent-info p {
+  margin: 4px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.voice-agent-info small {
+  color: #999;
+  font-size: 12px;
 }

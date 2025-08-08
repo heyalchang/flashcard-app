@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import FlashCard from './components/FlashCard';
 import PostLog from './components/PostLog';
+import VoiceAgent from './components/VoiceAgent';
 import { useWebSocket } from './hooks/useWebSocket';
 import { generateQuestion } from './utils/questionGenerator';
+import { pipecatService } from './services/pipecatService';
 import { Question, LogEntry } from './types';
 
 function App() {
@@ -13,7 +15,10 @@ function App() {
   const [isAnswered, setIsAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [lastAnswer, setLastAnswer] = useState<number | undefined>();
-  const { isConnected, lastMessage, clearLastMessage } = useWebSocket('ws://localhost:3001');
+  const [voiceConnected, setVoiceConnected] = useState(false);
+  const wsUrl = process.env.REACT_APP_WS_URL || 'ws://localhost:3051';
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3051';
+  const { isConnected, lastMessage, clearLastMessage } = useWebSocket(wsUrl);
 
   useEffect(() => {
     console.log('Effect running, lastMessage:', lastMessage?.timestamp);
@@ -82,26 +87,42 @@ function App() {
       </header>
       
       <main className="App-main">
-        <div className="flashcard-container">
-          <FlashCard 
-            question={currentQuestion} 
-            isAnswered={isAnswered} 
-            isCorrect={isCorrect}
-            lastAnswer={lastAnswer}
-            previousQuestion={previousQuestion}
-          />
-          <div className="webhook-info">
-            <p>Send POST requests to:</p>
-            <code>http://localhost:3001/webhook</code>
-            <p>Expected format:</p>
-            <pre>{`{ "answer": <number> }
+        <div className="main-content">
+          <div className="flashcard-section">
+            <FlashCard 
+              question={currentQuestion} 
+              isAnswered={isAnswered} 
+              isCorrect={isCorrect}
+              lastAnswer={lastAnswer}
+              previousQuestion={previousQuestion}
+            />
+            
+            {/* Voice Agent Integration */}
+            {pipecatService.isConfigured() && (
+              <div className="voice-agent-section">
+                <VoiceAgent 
+                  onConnectionChange={setVoiceConnected}
+                  enableAutoJoin={false}
+                />
+              </div>
+            )}
+            
+            {/* Fallback webhook info if voice agent not configured */}
+            {!pipecatService.isConfigured() && (
+              <div className="webhook-info">
+                <p>Voice agent not configured. Manual webhook available:</p>
+                <code>{apiUrl}/webhook</code>
+                <p>Expected format:</p>
+                <pre>{`{ "answer": <number> }
 or
 { "number": <number> }`}</pre>
+              </div>
+            )}
           </div>
-        </div>
-        
-        <div className="log-container">
-          <PostLog entries={logEntries} />
+          
+          <div className="log-container">
+            <PostLog entries={logEntries} />
+          </div>
         </div>
       </main>
     </div>
