@@ -29,9 +29,20 @@ export function useWebSocket(url: string): UseWebSocketReturn {
 
       ws.onmessage = (event) => {
         try {
-          const message = JSON.parse(event.data) as WebhookMessage;
+          const message = JSON.parse(event.data);
           console.log('Received message:', message);
-          setLastMessage(message);
+          
+          // Emit event for voice service if it's a voice disconnect
+          if (message.type === 'voice_disconnect') {
+            window.dispatchEvent(new CustomEvent('websocket_message', {
+              detail: message
+            }));
+          }
+          
+          // Only set as lastMessage if it's a webhook message
+          if (message.type === 'webhook' || message.type === 'answer') {
+            setLastMessage(message as WebhookMessage);
+          }
         } catch (error) {
           console.error('Failed to parse message:', error);
         }

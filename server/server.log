@@ -7,17 +7,31 @@
 [33m[nodemon] watching path(s): *.*[39m
 [33m[nodemon] watching extensions: ts,json[39m
 [32m[nodemon] starting `ts-node src/server.ts`[39m
-Server running on http://localhost:3001
-Webhook endpoints:
-  - http://localhost:3001/webhook
-  - http://localhost:3001/api/answer
-WebSocket endpoint: ws://localhost:3001
+========================================
+Server running on http://localhost:3051
+========================================
+Endpoints:
+  Webhook:     http://localhost:3051/webhook
+  Alt Webhook: http://localhost:3051/api/answer
+  Voice API:   http://localhost:3051/api/voice/*
+  WebSocket:   ws://localhost:3051
+----------------------------------------
+PipeCat Configuration:
+  API Key:     ✓ Configured
+  Agent Name:  my-first-agent
+  Webhook URL: https://6e014b39f518.ngrok-free.app/api/answer
+========================================
 New WebSocket connection
 New WebSocket connection
-Received webhook: {
-  number: 5,
-  transcription: 'five.',
-  timestamp: '2025-08-06T10:58:05.640289',
-  last_question: null
+Goodbye detected in transcription: goodbye
+Full payload: {
+  "transcription": "goodbye",
+  "number": 42
 }
-[31m[nodemon] app crashed - waiting for file changes before starting...[39m
+Ending all active voice sessions after goodbye
+WebSocket connection closed
+WebSocket connection closed
+New WebSocket connection
+New WebSocket connection
+WebSocket connection closed
+WebSocket connection closed

@@ -2,14 +2,18 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
+import AppMinimal from './AppMinimal';
 import reportWebVitals from './reportWebVitals';
+
+// Use AppMinimal if REACT_APP_MINIMAL env var is set
+const AppComponent = process.env.REACT_APP_MINIMAL === 'true' ? AppMinimal : App;
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <React.StrictMode>
-    <App />
+    <AppComponent />
   </React.StrictMode>
 );
 

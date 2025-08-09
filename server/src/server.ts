@@ -1,9 +1,13 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import { WebSocket, WebSocketServer } from 'ws';
 import http from 'http';
 import { parseSpokenNumber } from './numberParser';
+import { pipecatService } from './pipecatService';
 
 const app = express();
 const port = 3051;
@@ -44,10 +48,58 @@ wss.on('connection', (ws: WebSocket) => {
   });
 });
 
-app.post('/webhook', (req, res) => {
+app.post('/webhook', async (req, res) => {
   const payload: WebhookPayload = req.body;
   const now = Date.now();
   const timestamp = new Date().toISOString();
+  
+  // Check for goodbye in transcription
+  if (payload.transcription?.toLowerCase().includes('goodbye')) {
+    console.log('Goodbye detected in transcription:', payload.transcription);
+    console.log('Full payload:', JSON.stringify(payload, null, 2));
+    
+    // Try to find user ID from metadata
+    const userId = payload.metadata?.userId || payload.userId;
+    const sessionId = payload.metadata?.session_id || payload.session_id;
+    
+    // Broadcast disconnect signal to all clients
+    const disconnectMessage = {
+      type: 'voice_disconnect',
+      timestamp,
+      sessionId,
+      userId,
+      reason: 'user_goodbye'
+    };
+    
+    clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(disconnectMessage));
+      }
+    });
+    
+    // End all active sessions (since we might not have the exact session ID)
+    // This is safer than trying to match a specific session
+    setTimeout(async () => {
+      console.log('Ending all active voice sessions after goodbye');
+      const activeSessions = pipecatService.getActiveSessions();
+      for (const [uid, session] of activeSessions) {
+        console.log(`Ending session for user ${uid}`);
+        await pipecatService.endSession(uid, 'goodbye');
+      }
+    }, 2000);
+    
+    return res.status(200).json({ success: true, goodbye: true });
+  }
+  
+  // Check if session is muted
+  const sessionId = payload.metadata?.session_id || payload.session_id;
+  if (sessionId) {
+    const userId = pipecatService.getUserIdByPipecatId(sessionId);
+    if (userId && pipecatService.isMuted(userId)) {
+      console.log('Ignoring webhook from muted session');
+      return res.status(200).json({ success: true, muted: true });
+    }
+  }
   
   // Debounce: ignore if too soon after last webhook
   if (now - lastWebhookTime < DEBOUNCE_MS) {
@@ -128,13 +180,104 @@ app.post('/api/answer', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', clients: clients.size });
+  res.json({ 
+    status: 'ok', 
+    clients: clients.size,
+    pipecatConfigured: pipecatService.isConfigured(),
+    activeSessions: pipecatService.getActiveSessions().size
+  });
+});
+
+// Voice session endpoints
+app.post('/api/voice/session', async (req, res) => {
+  try {
+    const userId = req.body.userId || `user-${Date.now()}`;
+    
+    if (!pipecatService.isConfigured()) {
+      return res.status(503).json({ 
+        error: 'PipeCat service not configured',
+        message: 'PIPECAT_API_KEY environment variable is missing'
+      });
+    }
+    
+    const session = await pipecatService.createSession(userId);
+    
+    // Map snake_case to camelCase for frontend
+    res.json({
+      sessionId: session.session_id,
+      roomUrl: session.room_url,  // Map room_url -> roomUrl for frontend
+      token: session.token,
+      expiresAt: session.expiresAt,
+      remainingTime: pipecatService.getRemainingTime(userId)
+    });
+  } catch (error: any) {
+    console.error('Failed to create voice session:', error);
+    res.status(500).json({ 
+      error: 'Failed to create voice session',
+      message: error.message || 'Unknown error'
+    });
+  }
+});
+
+app.delete('/api/voice/session/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const userId = pipecatService.getUserIdByPipecatId(sessionId);
+    
+    if (userId) {
+      await pipecatService.endSession(userId, 'user_initiated');
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ error: 'Session not found' });
+    }
+  } catch (error) {
+    console.error('Failed to end voice session:', error);
+    res.status(500).json({ error: 'Failed to end voice session' });
+  }
+});
+
+app.post('/api/voice/mute', (req, res) => {
+  const { sessionId, isMuted } = req.body;
+  const userId = pipecatService.getUserIdByPipecatId(sessionId);
+  
+  if (userId) {
+    pipecatService.setMuteState(userId, isMuted);
+    res.json({ success: true, isMuted });
+  } else {
+    res.status(404).json({ error: 'Session not found' });
+  }
+});
+
+app.get('/api/voice/session/:sessionId/status', (req, res) => {
+  const { sessionId } = req.params;
+  const userId = pipecatService.getUserIdByPipecatId(sessionId);
+  
+  if (userId) {
+    const session = pipecatService.getSession(userId);
+    res.json({
+      active: true,
+      remainingTime: pipecatService.getRemainingTime(userId),
+      isMuted: session?.isMuted || false
+    });
+  } else {
+    res.json({ active: false });
+  }
 });
 
 server.listen(port, () => {
+  const webhookUrl = process.env.WEBHOOK_URL || 'https://6e014b39f518.ngrok-free.app/api/answer';
+  console.log('========================================');
   console.log(`Server running on http://localhost:${port}`);
-  console.log(`Webhook endpoints:`);
-  console.log(`  - http://localhost:${port}/webhook`);
-  console.log(`  - http://localhost:${port}/api/answer`);
-  console.log(`WebSocket endpoint: ws://localhost:${port}`);
+  console.log('========================================');
+  console.log('Endpoints:');
+  console.log(`  Webhook:     http://localhost:${port}/webhook`);
+  console.log(`  Alt Webhook: http://localhost:${port}/api/answer`);
+  console.log(`  Voice API:   http://localhost:${port}/api/voice/*`);
+  console.log(`  WebSocket:   ws://localhost:${port}`);
+  console.log('----------------------------------------');
+  console.log('PipeCat Configuration:');
+  console.log(`  API Key:     ${pipecatService.isConfigured() ? '✓ Configured' : '✗ Missing'}`);
+  console.log(`  Agent Name:  ${process.env.PIPECAT_AGENT_NAME || 'my-first-agent'}`);
+  console.log(`  Webhook URL: ${webhookUrl}`);
+  console.log('========================================');
 });

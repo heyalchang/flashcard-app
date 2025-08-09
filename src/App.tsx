@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import FlashCard from './components/FlashCard';
 import PostLog from './components/PostLog';
-import VoiceAgent from './components/VoiceAgent';
+import VoiceMode from './components/VoiceMode';
 import { useWebSocket } from './hooks/useWebSocket';
 import { generateQuestion } from './utils/questionGenerator';
-import { pipecatService } from './services/pipecatService';
 import { Question, LogEntry } from './types';
 
 function App() {
@@ -15,7 +14,6 @@ function App() {
   const [isAnswered, setIsAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [lastAnswer, setLastAnswer] = useState<number | undefined>();
-  const [voiceConnected, setVoiceConnected] = useState(false);
   const wsUrl = process.env.REACT_APP_WS_URL || 'ws://localhost:3051';
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3051';
   const { isConnected, lastMessage, clearLastMessage } = useWebSocket(wsUrl);
@@ -97,18 +95,13 @@ function App() {
               previousQuestion={previousQuestion}
             />
             
-            {/* Voice Agent Integration */}
-            {pipecatService.isConfigured() && (
-              <div className="voice-agent-section">
-                <VoiceAgent 
-                  onConnectionChange={setVoiceConnected}
-                  enableAutoJoin={false}
-                />
-              </div>
-            )}
+            {/* Voice Mode Integration */}
+            <div className="voice-mode-section">
+              <VoiceMode />
+            </div>
             
-            {/* Fallback webhook info if voice agent not configured */}
-            {!pipecatService.isConfigured() && (
+            {/* Webhook info for manual testing */}
+            {process.env.NODE_ENV === 'development' && (
               <div className="webhook-info">
                 <p>Voice agent not configured. Manual webhook available:</p>
                 <code>{apiUrl}/webhook</code>
