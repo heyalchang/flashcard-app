@@ -15,6 +15,7 @@ class VoiceService {
   private isMuted: boolean = false;
   private voiceLevelHistory: number[] = [];
   private apiUrl: string;
+  private isTransitioning: boolean = false;
 
   constructor() {
     this.apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3051';
@@ -45,6 +46,14 @@ class VoiceService {
   }
 
   async startSession(containerElement: HTMLElement): Promise<void> {
+    // Prevent concurrent transitions
+    if (this.isTransitioning) {
+      console.log('Voice service is already transitioning, ignoring start request');
+      throw new Error('Voice service is busy, please wait');
+    }
+
+    this.isTransitioning = true;
+
     try {
       // Clean up any existing session first
       if (this.daily) {
@@ -97,6 +106,8 @@ class VoiceService {
       console.error('Failed to start voice session:', error);
       await this.cleanup();
       throw error;
+    } finally {
+      this.isTransitioning = false;
     }
   }
 
@@ -180,6 +191,14 @@ class VoiceService {
   async endSession(reason: string = 'user_initiated'): Promise<void> {
     console.log(`Ending voice session: ${reason}`);
     
+    // Prevent concurrent transitions
+    if (this.isTransitioning) {
+      console.log('Voice service is already transitioning, ignoring end request');
+      return;
+    }
+
+    this.isTransitioning = true;
+    
     // Stop accepting new input
     const sessionId = this.session?.sessionId;
     
@@ -207,6 +226,7 @@ class VoiceService {
     }
 
     await this.cleanup();
+    this.isTransitioning = false;
   }
 
   private async handleGoodbyeDetected() {
@@ -243,10 +263,20 @@ class VoiceService {
       }
     }
     
+    // Clear all Daily iframes from the DOM as a failsafe
+    const existingIframes = document.querySelectorAll('iframe[src*="daily.co"]');
+    existingIframes.forEach(iframe => {
+      console.log('Removing orphaned Daily iframe from DOM');
+      iframe.remove();
+    });
+    
     this.daily = null;
     this.session = null;
     this.isMuted = false;
     this.voiceLevelHistory = [];
+    
+    // Small delay to ensure Daily cleanup is complete
+    await new Promise(resolve => setTimeout(resolve, 100));
   }
 
   private getUserId(): string {
