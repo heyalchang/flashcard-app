@@ -1,17 +1,13 @@
 #!/bin/bash
 cd /home/ec2-user/flashcard-app
 
-echo "Installing Node.js dependencies..."
+echo "Setting up application..."
 
-# Install root dependencies
-npm ci --production
-
-# Install server dependencies
-cd server
-npm ci --production
-cd ..
-
-# Ensure correct permissions
+# The dependencies are already included in the artifact from CodeBuild
+# Just ensure correct permissions
 chmod +x scripts/*.sh
 
-echo "Dependencies installed successfully"
+# Create necessary directories if they don't exist
+mkdir -p /var/log
+
+echo "Application setup completed"

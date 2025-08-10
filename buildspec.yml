@@ -9,7 +9,7 @@ phases:
       
   build:
     commands:
-      - echo Building server...
+      - echo Building server TypeScript...
       - cd server && npm run build && cd ..
       - echo Building React app...
       - npm run build
@@ -17,16 +17,18 @@ phases:
   post_build:
     commands:
       - echo Build completed on `date`
+      - echo Listing build outputs...
+      - ls -la build/
+      - ls -la server/dist/
 
 artifacts:
   files:
-    - '**/*'
-  exclude-paths:
-    - node_modules/**/*
-    - server/node_modules/**/*
-    - .git/**/*
-    - .gitignore
-    - README.md
+    - 'build/**/*'
+    - 'server/dist/**/*'
+    - 'server/node_modules/**/*'
+    - 'server/package*.json'
+    - 'appspec.yml'
+    - 'scripts/**/*'
     
 cache:
   paths:
