@@ -19,7 +19,7 @@ phases:
     commands:
       - echo Building server TypeScript...
       - cd server
-      - npm run build
+      - npx tsc
       - cd ..
       - echo Building React app...
       - npm run build
