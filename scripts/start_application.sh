@@ -1,6 +1,14 @@
 #!/bin/bash
 echo "Starting flashcard-app service..."
 
+# Ensure the built files exist
+if [ ! -f "/home/ec2-user/flashcard-app/server/dist/server.production.js" ]; then
+    echo "Error: server/dist/server.production.js not found!"
+    echo "Contents of server/dist:"
+    ls -la /home/ec2-user/flashcard-app/server/dist/
+    exit 1
+fi
+
 # Create or update systemd service
 cat > /etc/systemd/system/flashcard-app.service << EOF
 [Unit]

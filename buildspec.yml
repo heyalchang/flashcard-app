@@ -1,25 +1,35 @@
 version: 0.2
 
 phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo Installing Node.js 18
+      
   pre_build:
     commands:
       - echo Installing dependencies...
       - npm install
-      - cd server && npm install && cd ..
+      - cd server
+      - npm install
+      - cd ..
       
   build:
     commands:
       - echo Building server TypeScript...
-      - cd server && npm run build && cd ..
+      - cd server
+      - npm run build
+      - cd ..
       - echo Building React app...
       - npm run build
+      - echo Verifying builds...
+      - ls -la server/dist/
+      - ls -la build/
       
   post_build:
     commands:
       - echo Build completed on `date`
-      - echo Listing build outputs...
-      - ls -la build/
-      - ls -la server/dist/
 
 artifacts:
   files:
