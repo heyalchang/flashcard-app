@@ -284,9 +284,15 @@ app.get('/api/voice/session/:sessionId/status', (req, res) => {
 // IMPORTANT: Catch-all route MUST be last
 // This serves the React app for any route not matched above
 if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
-    const indexPath = path.join(__dirname, '../../build', 'index.html');
-    res.sendFile(indexPath);
+  // Express 5.x requires specific catch-all syntax
+  app.use((req, res, next) => {
+    // Only handle GET requests that aren't API calls
+    if (req.method === 'GET' && !req.path.startsWith('/api') && !req.path.startsWith('/webhook')) {
+      const indexPath = path.join(__dirname, '../../build', 'index.html');
+      res.sendFile(indexPath);
+    } else {
+      next();
+    }
   });
 }
 

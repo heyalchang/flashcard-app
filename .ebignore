@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+server/node_modules/
+
+# Development files
+.git/
+.gitignore
+.env
+server/.env
+*.log
+
+# Source files (we only need compiled)
+src/
+server/src/
+
+# AWS files
+.elasticbeanstalk/
+aws-*.sh
+*.pem
+claude-aws.md
+
+# Build artifacts we don't need
+server/dist/*.map
+
+# Development configs
+.vscode/
+.idea/
