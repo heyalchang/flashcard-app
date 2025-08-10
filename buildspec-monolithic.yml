@@ -15,6 +15,8 @@ phases:
       - cd server
       - npm install
       - cd ..
+      # Get EC2 instance metadata for ALB URL (if available)
+      - export EC2_PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4 || echo "")
       
   build:
     commands:
@@ -23,11 +25,10 @@ phases:
       - tsc
       - cd ..
       - echo Setting production environment variables for React build...
-      # These will be replaced with actual ALB URL after deployment
-      # For now, using relative URLs which work with monolithic deployment
-      - export REACT_APP_WS_URL=""
-      - export REACT_APP_API_URL=""
-      - echo Building React app...
+      # These will be replaced with actual ALB URL after first deployment
+      - export REACT_APP_WS_URL="ws://${EC2_PUBLIC_IP:-localhost}:8080"
+      - export REACT_APP_API_URL="http://${EC2_PUBLIC_IP:-localhost}:8080"
+      - echo "Building React with WS URL: $REACT_APP_WS_URL"
       - npm run build
       - echo Verifying builds...
       - ls -la server/dist/

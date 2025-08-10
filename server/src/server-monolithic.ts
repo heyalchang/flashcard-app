@@ -30,7 +30,9 @@ if (process.env.NODE_ENV === 'production') {
   // Serve React build files
   const buildPath = path.join(__dirname, '../../build');
   app.use(express.static(buildPath));
-  console.log('Serving static files from:', buildPath);
+  
+  // API routes go first (before catch-all)
+  // They're defined below...
 }
 
 const server = http.createServer(app);
@@ -285,17 +287,14 @@ app.get('/api/voice/session/:sessionId/status', (req, res) => {
 // This serves the React app for any route not matched above
 if (process.env.NODE_ENV === 'production') {
   app.get('*', (req, res) => {
-    const indexPath = path.join(__dirname, '../../build', 'index.html');
-    res.sendFile(indexPath);
+    res.sendFile(path.join(__dirname, '../../build', 'index.html'));
   });
 }
 
 server.listen(port, () => {
   const webhookUrl = process.env.WEBHOOK_URL || 'https://6e014b39f518.ngrok-free.app/api/answer';
-  const isProduction = process.env.NODE_ENV === 'production';
   console.log('========================================');
   console.log(`Server running on http://localhost:${port}`);
-  console.log(`Environment: ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'}`);
   console.log('========================================');
   console.log('Endpoints:');
   console.log(`  Webhook:     http://localhost:${port}/webhook`);
@@ -307,11 +306,5 @@ server.listen(port, () => {
   console.log(`  API Key:     ${pipecatService.isConfigured() ? '✓ Configured' : '✗ Missing'}`);
   console.log(`  Agent Name:  ${process.env.PIPECAT_AGENT_NAME || 'my-first-agent'}`);
   console.log(`  Webhook URL: ${webhookUrl}`);
-  if (isProduction) {
-    console.log('----------------------------------------');
-    console.log('Static Files:');
-    console.log(`  Serving React app from /build directory`);
-    console.log(`  All routes fallback to index.html`);
-  }
   console.log('========================================');
 });

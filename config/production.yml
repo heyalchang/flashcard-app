@@ -1,0 +1,41 @@
+# Production Configuration
+# Non-sensitive environment-specific settings
+# Sensitive values should be in AWS Secrets Manager
+
+server:
+  port: 8080
+  node_env: production
+  
+cors:
+  # Update with your ALB URL or custom domain
+  origin: "https://flashcard-alb-123456789.us-east-1.elb.amazonaws.com"
+  # For multiple origins:
+  # origins:
+  #   - "https://your-frontend.vercel.app"
+  #   - "https://your-domain.com"
+
+pipecat:
+  agent_name: "flashcard-voice-agent"
+  # Webhook URL will be dynamically set based on ALB URL
+  # Or can be hardcoded here once ALB is stable
+  webhook_url: "${ALB_URL}/webhook"
+  
+websocket:
+  # WebSocket configuration
+  path: "/"
+  
+logging:
+  level: "info"
+  # CloudWatch integration
+  cloudwatch: true
+  
+# Health check configuration
+health:
+  path: "/health"
+  interval: 30
+  
+# Feature flags
+features:
+  voice_mode: true
+  practice_mode: true
+  debug_mode: false

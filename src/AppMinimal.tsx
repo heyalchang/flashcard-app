@@ -18,7 +18,17 @@ function AppMinimal() {
   const [isCorrect, setIsCorrect] = useState(false);
   const [lastAnswer, setLastAnswer] = useState<number | undefined>();
   
-  const wsUrl = process.env.REACT_APP_WS_URL || 'ws://localhost:3051';
+  // In production with monolithic deployment, use relative URLs
+  const getWebSocketUrl = () => {
+    if (process.env.REACT_APP_WS_URL && process.env.REACT_APP_WS_URL !== '') {
+      return process.env.REACT_APP_WS_URL;
+    }
+    // If no env var or empty string, use relative URL
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${protocol}//${window.location.host}`;
+  };
+  
+  const wsUrl = getWebSocketUrl();
   const { isConnected, lastMessage, clearLastMessage } = useWebSocket(wsUrl);
 
   // Process webhook messages

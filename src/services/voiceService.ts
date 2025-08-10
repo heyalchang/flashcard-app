@@ -18,7 +18,10 @@ class VoiceService {
   private isTransitioning: boolean = false;
 
   constructor() {
-    this.apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3051';
+    // Use relative URLs in production (monolithic deployment)
+    this.apiUrl = (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL !== '') 
+      ? process.env.REACT_APP_API_URL 
+      : '';
     
     // Listen for WebSocket messages about disconnection
     this.setupWebSocketListener();
@@ -65,7 +68,8 @@ class VoiceService {
       containerElement.innerHTML = '';
 
       // Call backend to create PipeCat session
-      const response = await fetch(`${this.apiUrl}/api/voice/session`, {
+      const url = this.apiUrl ? `${this.apiUrl}/api/voice/session` : '/api/voice/session';
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -173,7 +177,8 @@ class VoiceService {
 
     // Notify backend about mute state
     try {
-      await fetch(`${this.apiUrl}/api/voice/mute`, {
+      const url = this.apiUrl ? `${this.apiUrl}/api/voice/mute` : '/api/voice/mute';
+      await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -217,7 +222,8 @@ class VoiceService {
     // End PipeCat session on backend
     if (sessionId) {
       try {
-        await fetch(`${this.apiUrl}/api/voice/session/${sessionId}`, {
+        const url = this.apiUrl ? `${this.apiUrl}/api/voice/session/${sessionId}` : `/api/voice/session/${sessionId}`;
+        await fetch(url, {
           method: 'DELETE'
         });
       } catch (error) {

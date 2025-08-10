@@ -49,3 +49,8 @@ lerna-debug.log*
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+*.pem
+
+# Files with secrets
+aws-codepipeline-setup-auto.sh
+claude-aws.md

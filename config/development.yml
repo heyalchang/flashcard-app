@@ -1,0 +1,30 @@
+# Development Configuration
+# Local development settings
+
+server:
+  port: 3051
+  node_env: development
+  
+cors:
+  origin: "http://localhost:3000"
+  
+pipecat:
+  agent_name: "my-first-agent"
+  # Use ngrok for local webhook testing
+  webhook_url: "https://your-ngrok-id.ngrok-free.app/webhook"
+  
+websocket:
+  path: "/"
+  
+logging:
+  level: "debug"
+  cloudwatch: false
+  
+health:
+  path: "/health"
+  interval: 60
+  
+features:
+  voice_mode: true
+  practice_mode: true
+  debug_mode: true
