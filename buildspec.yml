@@ -10,17 +10,17 @@ phases:
   pre_build:
     commands:
       - echo Installing dependencies...
+      - npm install -g typescript
       - npm install
       - cd server
       - npm install
-      - npm install typescript --save
       - cd ..
       
   build:
     commands:
       - echo Building server TypeScript...
       - cd server
-      - npx tsc
+      - tsc
       - cd ..
       - echo Building React app...
       - npm run build
